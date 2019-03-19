@@ -1,68 +1,98 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+리엑트에 들어가기 앞서.. 개인적인 이야기입니다. 
 
-## Available Scripts
+(두 줄 안에 있는 내용은 읽으셔도 되고 안 읽으셔도 됩니다 ^^.)
 
-In the project directory, you can run:
+---------------------
 
-### `npm start`
+드디어 프로젝트에 엘라스틱서치를 적용하였습니다. 생각보다 많은 시간을 잡아 먹었네요 ㅜ.
 
-Runs the app in the development mode.<br>
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+사용해본 경험을 말씀드리면 E(elasticsearch), L(logstash), K(kibana)를 모두 사용하였고 로그스태시를 통해 mysql과 연동하여 데이터를 가져올 수 있었습니다. 그리고 키바나를 통해 간편하게 데이터를 분석할 수 있었습니다. 그리고 프로젝트를 진행하면서 엘라스틱서치와 mysql의 데이터를 동시에 생성,수정, 삭제가 이루어지게 하기 위해서 저는 elasticsearch_client를 통해서 node단에서 트랜젝션 처리를 하였습니다. 로그스태시를 통해 데이터를 스케쥴단위로 인덱싱할 수 있지만, 제가 맡은 프로젝트에서는 보다 빠르게 업데이트가 되어야 하기에, 그 때 그 때 동기화 시킬 필요가 있어서 트랜젝션을 통해 처리하게 되었습니다.
 
-The page will reload if you make edits.<br>
-You will also see any lint errors in the console.
+ 추후 엘라스틱서치에 머신런닝을 적용하는 부분은 도움을 받아야 하기에 기다려야 하기에 1차적인 부분은 마무리가 되었다고 할 수 있습니다. 트랜젝션처리를 하는 부분과 엘라스틱서치 클라이언트를 적용한 부분은 다음시간에 업데이트 하도록 하겠습니다. 
 
-### `npm test`
+-------------------------------------------------------------------------------------------------------------------------------------
 
-Launches the test runner in the interactive watch mode.<br>
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+# REACT_리액트?
 
-### `npm run build`
+먼저, 리액트의 개념적인 부분은 구글에 검색하면 다양하고 많은 자료가 나오기에 넘어가고, 이해하기 쉽게 제 주관적인 느낌을 말씀드리겠습니다. 리액트를 사용함으로써 우리는 귀찮은 DOM조작을 하지 않아도 됩니다.
 
-Builds the app for production to the `build` folder.<br>
-It correctly bundles React in production mode and optimizes the build for the best performance.
+예를들어, 상태를 변화시키기 위해서는
 
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
+```
+var num = 0;
+var test = document.getElementById('test');
+var testBtn = document.getElementById('testBtn');
+testBtn.addEventListener('click', function(e){
+    num++;
+    test.value = num;
+}) //이해를 돕기 위해 작성한 코드입니다. 오타가 있을 수 있으니 참고만 해주세요 ^^
+=====================================
+<div>
+	<p id="test">0</p>
+	<button id="testBtn"></button>
+</div>
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+다음과 같은 작업이 필요합니다.  지금은 매우 간단한 DOM조작이지만 이를 일일히 작성하는 것은 나중에 꽤나 번거로운 일일 것입니다. 아무리 자바스크립트를 잘해도 손이 많이 가니깐요. 
 
-### `npm run eject`
+React를 사용하면 매우 간단하게 상태조작을 할 수 있습니다.
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+위와 비교해보세요. ^^
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```
+class App extends Component {
+    render(){
+    	let num = 0;
+    	let numPlus = ()=>{
+            num++;
+    	}
+        return (
+        	<div>
+                <p id="test">{num}</p>
+                <button id="testBtn" onclick="numPlus()"></button>
+            </div>
+        )
+    }
+}
+export default App;
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+앗.. 코드가 더 길어졌네요..?;;; 하지만! 불필요한 돔조작이 사라진 것이 보이나요? id값을 전혀 사용하지도 않고 상태가 변화합니다. 마치 어떤 DOM이 변화하는지 아는 것처럼요!
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+어떻게 가능할까요??? 이는 html이 아니라는 것에 해답이 있습니다. 위에 html문법처럼 보이는 구조는 사실 jsx라는 문법구조입니다. 그래서 react에서는 만들어진 jsx와 렌더링 되어있고, 상태가 변화하게 되면 즉시 jsx의 num값을 변경하게 됩니다. 그리고 이는 실제 DOM과 비교하여 달라진 부분만 업데이트하게 되는 것이지요.. 잘 이해가 안되지요.? 저도 잘 이해가 안되었는데... 이거는 계속 봐야할 문제인 거 같습니다 ㅜ.... 이해하게 되면 와! 감탄을 하게 될 것입니다. 
 
-## Learn More
+https://www.youtube.com/watch?v=BYbgopx44vo
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+위 주소는 리액트의 가상돔을 이해하기 쉬운 동영상이라고 하는데.. 글쎄요.... 전 직접 사용하면서 이해하게 된 것 같습니다. 
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+이 글을 읽고 이해하시는데 조금이라도 도움이 되었다면.. 저는 정말 만족할 거 같습니다.
 
-### Code Splitting
+## 리액트 설치
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
+1. nodeJS 설치
 
-### Analyzing the Bundle Size
+   ​	설치주소 : https://nodejs.org/ko/
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
+2. react app설치
 
-### Making a Progressive Web App
+   ​	`npm install -g create-react-app`   -g옵션은 명령어를 글로벌로 설정하기 위함.
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
+3. 프로젝트 경로 이동 후 생성
 
-### Advanced Configuration
+   ​	`create-react-app hello-react` 'hello-react' 프로젝트 생성 : 임의로 변경
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
+4. 프로젝트 이동 및 실행
 
-### Deployment
+   ​	`cd hello-react` 
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
+   ​	`npm start`
 
-### `npm run build` fails to minify
+위에대로 잘 따라 하셨으면 실행하면 브라우저창에서 아래와 같은 페이지가 나타나게 됩니다.
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+![](.\img\react.png)
+
+다음에는 실제 리액트를 적용하여 컴포넌트들을 만들어보고 사용하는 방법에 대해서 올리도록 하겠습니다. 
+
+감사합니다.
+
+![](.\img\thankyou.png)
